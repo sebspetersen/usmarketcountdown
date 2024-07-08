@@ -32,8 +32,12 @@
     <div id="countdown"></div>
 
     <script>
+        function getNewYorkTime() {
+            return new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
+        }
+
         function updateCountdown() {
-            const now = new Date();
+            const now = getNewYorkTime();
             const marketOpen = new Date(now);
             marketOpen.setHours(9, 30, 0, 0);
             const marketClose = new Date(now);
