@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>US Market Countdown</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        #status {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+        #countdown {
+            font-size: 4rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="status"></div>
+    <div id="countdown"></div>
+
+    <script>
+        function updateCountdown() {
+            const now = new Date();
+            const marketOpen = new Date(now);
+            marketOpen.setHours(9, 30, 0, 0);
+            const marketClose = new Date(now);
+            marketClose.setHours(16, 0, 0, 0);
+
+            let targetTime, isOpen;
+
+            if (now < marketOpen) {
+                targetTime = marketOpen;
+                isOpen = false;
+            } else if (now >= marketOpen && now < marketClose) {
+                targetTime = marketClose;
+                isOpen = true;
+            } else {
+                marketOpen.setDate(marketOpen.getDate() + 1);
+                targetTime = marketOpen;
+                isOpen = false;
+            }
+
+            const timeDiff = targetTime - now;
+            const hours = Math.floor(timeDiff / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+            const statusElement = document.getElementById('status');
+            const countdownElement = document.getElementById('countdown');
+            
+            statusElement.textContent = isOpen ? "MARKET CLOSES IN:" : "MARKET OPENS IN:";
+            countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            countdownElement.style.color = isOpen ? 'green' : 'red';
+
+            setTimeout(updateCountdown, 1000);
+        }
+
+        updateCountdown();
+    </script>
+</body>
+</html>
