@@ -1,18 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XHQ6NHNVF7"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-XHQ6NHNVF7');
-    </script>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>US Market Countdown</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⏱️</text></svg>">
     <style>
         body {
             background-color: black;
@@ -45,24 +37,59 @@
             return new Date(new Date().toLocaleString("en-US", {timeZone: "America/New_York"}));
         }
 
+        function isWeekend(date) {
+            const day = date.getDay();
+            return day === 0 || day === 6; // 0 is Sunday, 6 is Saturday
+        }
+
+        function isHoliday(date) {
+            const year = date.getFullYear();
+            const holidays = [
+                new Date(year, 0, 1),  // New Year's Day
+                new Date(year, 0, 15),  // Martin Luther King Jr. Day (3rd Monday in January)
+                new Date(year, 1, 19),  // Presidents' Day (3rd Monday in February)
+                new Date(year, 4, 29),  // Memorial Day (last Monday in May)
+                new Date(year, 6, 4),  // Independence Day
+                new Date(year, 8, 4),  // Labor Day (1st Monday in September)
+                new Date(year, 10, 23),  // Thanksgiving Day (4th Thursday in November)
+                new Date(year, 11, 25)  // Christmas Day
+            ];
+
+            return holidays.some(holiday => 
+                holiday.getDate() === date.getDate() &&
+                holiday.getMonth() === date.getMonth()
+            );
+        }
+
+        function getNextBusinessDay(date) {
+            do {
+                date.setDate(date.getDate() + 1);
+            } while (isWeekend(date) || isHoliday(date));
+            return date;
+        }
+
         function updateCountdown() {
             const now = getNewYorkTime();
-            const marketOpen = new Date(now);
+            let marketOpen = new Date(now);
             marketOpen.setHours(9, 30, 0, 0);
-            const marketClose = new Date(now);
+            let marketClose = new Date(now);
             marketClose.setHours(16, 0, 0, 0);
 
             let targetTime, isOpen;
 
-            if (now < marketOpen) {
+            if (isWeekend(now) || isHoliday(now)) {
+                targetTime = getNextBusinessDay(new Date(now));
+                targetTime.setHours(9, 30, 0, 0);
+                isOpen = false;
+            } else if (now < marketOpen) {
                 targetTime = marketOpen;
                 isOpen = false;
             } else if (now >= marketOpen && now < marketClose) {
                 targetTime = marketClose;
                 isOpen = true;
             } else {
-                marketOpen.setDate(marketOpen.getDate() + 1);
-                targetTime = marketOpen;
+                targetTime = getNextBusinessDay(new Date(now));
+                targetTime.setHours(9, 30, 0, 0);
                 isOpen = false;
             }
 
