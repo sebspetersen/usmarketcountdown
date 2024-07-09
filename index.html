@@ -16,6 +16,8 @@
             height: 100vh;
             margin: 0;
             font-family: Arial, sans-serif;
+            overflow: hidden;
+            cursor: pointer;
         }
         #status {
             font-size: 2rem;
@@ -25,6 +27,18 @@
         #countdown {
             font-size: 4rem;
             font-weight: bold;
+        }
+        .dollar {
+            position: absolute;
+            font-size: 100px;
+            user-select: none;
+            opacity: 0;
+            z-index: -1;
+        }
+        @keyframes fallingDollar {
+            0% { transform: translateY(-100vh); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0.3; }
         }
     </style>
 </head>
@@ -39,7 +53,7 @@
 
         function isWeekend(date) {
             const day = date.getDay();
-            return day === 0 || day === 6; // 0 is Sunday, 6 is Saturday
+            return day === 0 || day === 6;
         }
 
         function isHoliday(date) {
@@ -68,6 +82,28 @@
             return date;
         }
 
+        function createDollar(x = null) {
+            const dollar = document.createElement('div');
+            dollar.textContent = '💵';
+            dollar.classList.add('dollar');
+            dollar.style.left = (x !== null ? x : Math.random() * 100) + 'vw';
+            dollar.style.animation = `fallingDollar ${5 + Math.random() * 5}s linear`;
+            document.body.appendChild(dollar);
+            setTimeout(() => dollar.remove(), 10000);
+        }
+
+        function startDollarRain() {
+            const interval = setInterval(() => {
+                for (let i = 0; i < 3; i++) {
+                    createDollar();
+                }
+            }, 500);
+
+            setTimeout(() => clearInterval(interval), 600000); // Stop after 10 minutes
+        }
+
+        let rainStarted = false;
+
         function updateCountdown() {
             const now = getNewYorkTime();
             let marketOpen = new Date(now);
@@ -87,6 +123,10 @@
             } else if (now >= marketOpen && now < marketClose) {
                 targetTime = marketClose;
                 isOpen = true;
+                if (!rainStarted && (now - marketOpen) < 600000) { // Within first 10 minutes of opening
+                    startDollarRain();
+                    rainStarted = true;
+                }
             } else {
                 targetTime = getNextBusinessDay(new Date(now));
                 targetTime.setHours(9, 30, 0, 0);
@@ -105,8 +145,18 @@
             countdownElement.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
             countdownElement.style.color = isOpen ? 'green' : 'red';
 
+            if (!isOpen) {
+                rainStarted = false;
+            }
+
             setTimeout(updateCountdown, 1000);
         }
+
+        // Add click event listener to create a dollar bill on click
+        document.body.addEventListener('click', (event) => {
+            const x = (event.clientX / window.innerWidth) * 100;
+            createDollar(x);
+        });
 
         updateCountdown();
     </script>
